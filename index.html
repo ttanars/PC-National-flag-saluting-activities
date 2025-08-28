@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+
+	<meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📊 รายงานการเข้าร่วมกิจกรรมหน้าเสาธง</title> <link rel="shortcut icon" type="image/png" href="https://img2.pic.in.th/pic/Pakchong_School-removebg-preview.png">
+
+    <!-- Google Fonts: Sarabun -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+    <!-- DataTables CSS for Bootstrap 5 -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+
+    <!-- Custom CSS for modern UI -->
+    <style>
+        body {
+            background-color: #f4f7f9;
+            font-family: 'Sarabun', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .main-content {
+            flex: 1;
+        }
+        .navbar {
+            box-shadow: 0 4px 6px rgba(0,0,0,.05);
+            background-color: #ffffff !important;
+        }
+        .card {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 8px 25px rgba(0,0,0,.07);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background-color: #ffffff;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,.1);
+        }
+        .card-header {
+            background: #ffffff;
+            color: #0d6efd;
+            font-weight: 600;
+            border-top-left-radius: 0.75rem;
+            border-top-right-radius: 0.75rem;
+            border-bottom: 1px solid #eee;
+            padding: 1rem 1.25rem;
+        }
+        .summary-card .card-body {
+            position: relative;
+            overflow: hidden;
+        }
+        .summary-card h5 {
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .summary-card h2 {
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .summary-card .icon {
+            position: absolute;
+            top: 50%;
+            right: 15px; /* Adjusted position */
+            transform: translateY(-50%);
+            font-size: 4rem; /* Adjusted size */
+            opacity: 0.2;
+            transition: transform 0.3s ease;
+        }
+        .summary-card:hover .icon {
+            transform: translateY(-50%) scale(1.1);
+        }
+        .form-select, .form-control {
+            border-radius: 0.5rem;
+        }
+        .badge {
+            font-size: 0.9em;
+            padding: 0.5em 0.7em;
+        }
+        /* DataTable Alignment */
+        #studentTable th, #studentTable td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        #studentTable td.text-start {
+            text-align: left !important;
+        }
+        /* Loading Overlay */
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #loading-overlay img {
+            width: 150px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loading-overlay" style="display: none;">
+    <img src="https://media1.giphy.com/media/mBMdeZHp6bqfkL4vBI/giphy.gif" alt="Loading...">
+</div>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top">
+  <div class="container-fluid">
+    <a class="navbar-brand text-primary fw-bold" href="#">
+      <i class="fas fa-flag"></i>
+      PC | National flag saluting activities
+    </a>
+    <button id="refreshBtn" class="btn btn-outline-primary">
+        <i class="fas fa-sync-alt me-1"></i> โหลดข้อมูลใหม่
+    </button>
+  </div>
+</nav>
+
+<div class="container-fluid p-4 main-content">
+
+    <div class="container text-center mt-3 mb-3">
+        <marquee behavior="scroll" direction="left" style="color:#000000; font-size: 18px;margin-top: 2px; margin-bottom: 2px;" onmouseover="this.stop();" onmouseout="this.start();"><h3 style="margin-top: 2px; margin-bottom: 4px;"><img src="https://lh5.googleusercontent.com/d/1cD2nVKNscJg1DJPnkaakah7Nz4ez_BZS" height="12" width="25" > ยินดีต้อนรับเข้าสู่ระบบสารสนเทศการร่วมกิจกรรมหน้าเสาธงของนักเรียน โรงเรียนปากช่อง :: ออกแบบและพัฒนาโดย KT | Tanasarn Sirak <img src="https://lh5.googleusercontent.com/d/1cD2nVKNscJg1DJPnkaakah7Nz4ez_BZS" height="12" width="25" ></h3></marquee>
+    </div>
+
+    <!-- Dashboard Section -->
+    <div id="dashboard">
+        <!-- Section 1: Attendance Summary -->
+        <h3 class="mb-3"><i class="fas fa-clipboard-user text-primary"></i> สรุปข้อมูลการร่วมกิจกรรมหน้าเสาธงของนักเรียนวันนี้</h3>
+        <div class="row mb-4">
+            <div class="col mb-4 summary-card"><div class="card text-white h-100" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0);"><div class="card-body text-center"><i class="fas fa-users icon"></i><h5 class="card-title">ทั้งหมด</h5><h2 id="totalStudents" class="fw-bold display-6">0</h2></div></div></div>
+            <div class="col mb-4 summary-card"><div class="card text-white h-100" style="background: linear-gradient(135deg, #198754, #20c997);"><div class="card-body text-center"><i class="fas fa-user-check icon"></i><h5 class="card-title">มา</h5><h2 id="presentStudents" class="fw-bold display-6">0</h2></div></div></div>
+            <div class="col mb-4 summary-card"><div class="card text-white h-100" style="background: linear-gradient(135deg, #ffc107, #fd7e14);"><div class="card-body text-center"><i class="fas fa-user-clock icon"></i><h5 class="card-title">ลา</h5><h2 id="leaveStudents" class="fw-bold display-6">0</h2></div></div></div>
+            <div class="col mb-4 summary-card"><div class="card text-white h-100" style="background: linear-gradient(135deg, #dc3545, #fd143a);"><div class="card-body text-center"><i class="fas fa-user-times icon"></i><h5 class="card-title">ขาด</h5><h2 id="absentStudents" class="fw-bold display-6">0</h2></div></div></div>
+            <div class="col mb-4 summary-card"><div class="card text-white h-100" style="background: linear-gradient(135deg, #6610f2, #6f42c1);"><div class="card-body text-center"><i class="fas fa-running icon"></i><h5 class="card-title">กิจกรรม</h5><h2 id="activityStudents" class="fw-bold display-6">0</h2></div></div></div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-lg-8 mb-4"><div class="card h-100"><div class="card-body"><div style="position: relative; height:300px; width:100%;"><canvas id="attendanceByGradeChart"></canvas></div></div></div></div>
+            <div class="col-lg-4 mb-4"><div class="card h-100"><div class="card-body d-flex justify-content-center align-items-center"><div style="position: relative; height:300px; width:100%;"><canvas id="attendanceChart"></canvas></div></div></div></div>
+        </div>
+
+        <hr class="my-4">
+
+        <!-- Section 2: Evaluation Summary -->
+        <h3 class="mb-3"><i class="fas fa-chart-bar text-primary"></i> สรุปผลการประเมิน</h3>
+        <div class="row mb-4">
+             <div class="col-lg-3 col-md-6 mb-4 summary-card"><div class="card h-100 text-white" style="background: linear-gradient(135deg, #20c997, #28a745);"><div class="card-body text-center"><i class="fas fa-check-circle icon"></i><h5 class="card-title">ผ่าน (ผ)</h5><h2 id="passStudents" class="fw-bold display-6">0</h2></div></div></div>
+            <div class="col-lg-3 col-md-6 mb-4 summary-card"><div class="card text-white h-100" style="background: linear-gradient(135deg, #6c757d, #343a40);"><div class="card-body text-center"><i class="fas fa-times-circle icon"></i><h5 class="card-title">ไม่ผ่าน (มผ)</h5><h2 id="failStudents" class="fw-bold display-6">0</h2></div></div></div>
+             <div class="col-lg-6 mb-4"><div class="card h-100"><div class="card-body d-flex justify-content-center align-items-center"><div style="position: relative; height:300px; width:100%;"><canvas id="resultSummaryChart"></canvas></div></div></div></div>
+        </div>
+        <div class="row mb-4">
+            <div class="col-lg-12 mb-4"><div class="card h-100"><div class="card-body"><div style="position: relative; height:300px; width:100%;"><canvas id="resultByGradeChart"></canvas></div></div></div></div>
+        </div>
+    </div>
+
+    <!-- DataTable Section -->
+    <div class="card">
+        <div class="card-header"><i class="fas fa-table"></i> รายละเอียดการเข้าร่วมกิจกรรม</div>
+        <div class="card-body">
+            <div class="row g-3 mb-4 p-3 bg-light border rounded-3">
+                <div class="col-md-3"><label for="filterClass" class="form-label fw-bold">ชั้น</label><select id="filterClass" class="form-select"></select></div>
+                <div class="col-md-3"><label for="filterRoom" class="form-label fw-bold">ห้อง</label><select id="filterRoom" class="form-select"></select></div>
+                <div class="col-md-3"><label for="filterResult" class="form-label fw-bold">สรุปผล</label><select id="filterResult" class="form-select"></select></div>
+                <div class="col-md-3"><label for="filterName" class="form-label fw-bold">ค้นหาชื่อ-สกุล</label><input type="text" id="filterName" class="form-control" placeholder="พิมพ์เพื่อค้นหา..."></div>
+            </div>
+            <div class="table-responsive"><table id="studentTable" class="table table-striped table-hover dt-responsive nowrap" style="width:100%"><thead><tr><th>ไฟล์</th><th>ชั้น</th><th>ห้อง</th><th>ชื่อ-สกุล</th><th>วันนี้</th><th>มา</th><th>ลา</th><th>ขาด</th><th>กิจกรรม</th><th>รวมเวลา</th><th>%มาแถว</th><th>สรุปผล</th></tr></thead><tbody></tbody></table></div>
+        </div>
+    </div>
+</div>
+
+<footer style="text-align: center;background-color:#faff99; padding: 10px 0; margin-top: auto; border-top: 1px solid #e0e0e0; font-size: 0.9em; color: #555; width: 100%;">
+    :: Created and Develop by KT|Tanasarn Sirak ::
+    <div class="container text-center">
+    <a href="https://line.me/ti/p/3F7VGrqgUr" target="_blank"><i class="fa-solid fa-comments"></i></a> <a style="color:red;text-decoration:none;font-size:12px" href="https://line.me/ti/p/3F7VGrqgUr" target="_blank"> สอบถาม/แจ้งปัญหา :: <span style="font-size:12px;color:black">KT | Tanasarn Sirak © <span class="buddhist-year"></span></a>
+    </div>
+    <div class="text-center mt-3">
+    :: จำนวนผู้ใช้งาน ::
+    <a href="https://www.freecounterstat.com" title="website counter"><img src="https://counter1.optistats.ovh/private/freecounterstat.php?c=uwgfnf4ee1nu15h57t14a9pnpf2h58za" border="0" title="website counter" alt="website counter"></a>
+    </div>
+</footer>
+
+<!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+<script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+$(document).ready(function() {
+    // Set default font for all charts
+    Chart.defaults.font.family = "'Sarabun', sans-serif";
+    
+    // Set Buddhist Year in Footer
+    document.querySelector('.buddhist-year').textContent = new Date().getFullYear() + 543;
+
+    const GOOGLE_SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxb2OP7k3H3tc0u24WeXlaC3Tx4SeHRCDzi27GaESNNtBJG3pWeUIfOYgIyLzMYU42UtQ/exec';
+
+    let table;
+    let originalData = [];
+    let attendanceChart, attendanceByGradeChart, resultByGradeChart, resultSummaryChart;
+
+    function fetchData() {
+        $('#loading-overlay').show();
+
+        $.ajax({
+            url: GOOGLE_SHEET_API_URL,
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response && Array.isArray(response.data)) {
+                    originalData = response.data.filter(row => row.class && row.name);
+                    populateTable(originalData);
+                    updateDashboard(originalData);
+                    populateFilters(originalData);
+                    Toast.fire({ icon: 'success', title: 'โหลดข้อมูลล่าสุดสำเร็จ' });
+                } else {
+                    let msg = (response && response.message) ? response.message : 'ได้รับข้อมูลในรูปแบบที่ไม่ถูกต้อง';
+                    Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด!', text: msg });
+                }
+            },
+            error: () => Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด!', text: 'ไม่สามารถเชื่อมต่อกับ Google Sheet ได้' }),
+            complete: () => $('#loading-overlay').hide()
+        });
+    }
+
+    function populateTable(data) {
+        if ($.fn.DataTable.isDataTable('#studentTable')) {
+            table.destroy();
+        }
+        let tableBody = $('#studentTable tbody').empty();
+        data.forEach(row => {
+            let resultClass = row.result === 'ผ' ? 'bg-success' : (row.result === 'มผ' ? 'bg-danger' : 'bg-secondary');
+            let rowHtml = `
+                <tr>
+                    <td>${row.file ? `<a href="${row.file}" target="_blank" class="btn btn-sm btn-outline-danger"><i class="fas fa-file-pdf"></i></a>` : ''}</td>
+                    <td>${row.class || ''}</td>
+                    <td>${row.room || ''}</td>
+                    <td class="text-start">${row.name || ''}</td>
+                    <td>${row.today || ''}</td>
+                    <td>${row.come || '0'}</td>
+                    <td>${row.leave || '0'}</td>
+                    <td>${row.absent || '0'}</td>
+                    <td>${row.activity ?? ''}</td>
+                    <td>${row.totalTime ? Math.round(parseFloat(row.totalTime)) : ''}</td>
+                    <td>${row.checkinTime ? parseFloat(row.checkinTime).toFixed(2) : '0.00'}%</td>
+                    <td><span class="badge ${resultClass}">${row.result || 'N/A'}</span></td>
+                </tr>
+            `;
+            tableBody.append(rowHtml);
+        });
+        table = $('#studentTable').DataTable({
+            responsive: true,
+            language: { url: "//cdn.datatables.net/plug-ins/1.13.7/i18n/th.json" },
+            searching: false,
+            columnDefs: [
+                { responsivePriority: 1, targets: 3 }, { responsivePriority: 2, targets: 11 },
+                { responsivePriority: 3, targets: 1 }, { responsivePriority: 4, targets: 2 },
+                { orderable: false, targets: 0 }
+            ]
+        });
+    }
+
+    function populateFilters(data) {
+        const classes = [...new Set(data.map(item => item.class))].sort();
+        const rooms = [...new Set(data.map(item => item.room))].sort((a,b)=>a-b);
+        const results = [...new Set(data.map(item => item.result))];
+        const populate = (selector, values) => {
+            const el = $(selector);
+            el.empty().append('<option value="">-- ทั้งหมด --</option>');
+            values.forEach(val => el.append(`<option value="${val}">${val}</option>`));
+        };
+        populate('#filterClass', classes);
+        populate('#filterRoom', rooms);
+        populate('#filterResult', results);
+    }
+    
+    function updateDashboard(data) {
+        // --- Card Calculations ---
+        $('#totalStudents').text(data.length);
+        $('#presentStudents').text(data.filter(s => s.today === 'มา').length);
+        $('#leaveStudents').text(data.filter(s => s.today === 'ลา').length);
+        $('#absentStudents').text(data.filter(s => s.today === 'ขาด').length);
+        $('#activityStudents').text(data.filter(s => s.today === 'กก').length);
+        $('#passStudents').text(data.filter(s => s.result === 'ผ').length);
+        $('#failStudents').text(data.filter(s => s.result === 'มผ').length);
+        
+        // --- Chart Data Preparation ---
+        const gradeOrder = ['ม.1', 'ม.2', 'ม.3', 'ม.4', 'ม.5', 'ม.6'];
+        const gradeCounts = {};
+        gradeOrder.forEach(grade => {
+            gradeCounts[grade] = { come: 0, leave: 0, absent: 0, activity: 0, pass: 0, fail: 0 };
+        });
+        data.forEach(s => {
+            if (gradeCounts.hasOwnProperty(s.class)) {
+                if (s.today === 'มา') gradeCounts[s.class].come++;
+                if (s.today === 'ลา') gradeCounts[s.class].leave++;
+                if (s.today === 'ขาด') gradeCounts[s.class].absent++;
+                if (s.today === 'กก') gradeCounts[s.class].activity++;
+                if (s.result === 'ผ') gradeCounts[s.class].pass++;
+                if (s.result === 'มผ') gradeCounts[s.class].fail++;
+            }
+        });
+
+        // --- Attendance Doughnut Chart ---
+        if(attendanceChart) attendanceChart.destroy();
+        attendanceChart = new Chart($('#attendanceChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['มา', 'ลา', 'ขาด', 'กิจกรรม'],
+                datasets: [{
+                    data: [$('#presentStudents').text(), $('#leaveStudents').text(), $('#absentStudents').text(), $('#activityStudents').text()],
+                    backgroundColor: ['#198754', '#ffc107', '#dc3545', '#0dcaf0'],
+                    borderColor: '#fff', borderWidth: 2
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, title: { display: true, text: 'สรุปการเข้าร่วม', font: { size: 16 } } }, cutout: '60%' }
+        });
+
+        // --- Result Summary Doughnut Chart ---
+        if(resultSummaryChart) resultSummaryChart.destroy();
+        resultSummaryChart = new Chart($('#resultSummaryChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['ผ่าน (ผ)', 'ไม่ผ่าน (มผ)'],
+                datasets: [{
+                    data: [$('#passStudents').text(), $('#failStudents').text()],
+                    backgroundColor: ['rgba(25, 135, 84, 0.7)', 'rgba(220, 53, 69, 0.7)'],
+                    borderColor: '#fff', borderWidth: 2
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, title: { display: true, text: 'สรุปผลประเมิน', font: { size: 16 } } }, cutout: '60%' }
+        });
+
+        // --- Attendance Bar Chart ---
+        if (attendanceByGradeChart) attendanceByGradeChart.destroy();
+        attendanceByGradeChart = new Chart($('#attendanceByGradeChart'), {
+            type: 'bar',
+            data: {
+                labels: gradeOrder,
+                datasets: [
+                    { label: 'มา', data: gradeOrder.map(g => gradeCounts[g].come), backgroundColor: 'rgba(25, 135, 84, 0.7)' },
+                    { label: 'ลา', data: gradeOrder.map(g => gradeCounts[g].leave), backgroundColor: 'rgba(255, 193, 7, 0.7)' },
+                    { label: 'ขาด', data: gradeOrder.map(g => gradeCounts[g].absent), backgroundColor: 'rgba(220, 53, 69, 0.7)' },
+                    { label: 'กิจกรรม', data: gradeOrder.map(g => gradeCounts[g].activity), backgroundColor: 'rgba(13, 202, 240, 0.7)' }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, title: { display: true, text: 'เปรียบเทียบการเข้าร่วมรายชั้น', font: { size: 16 } } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 5 } } } }
+        });
+
+        // --- Result Bar Chart ---
+        if (resultByGradeChart) resultByGradeChart.destroy();
+        resultByGradeChart = new Chart($('#resultByGradeChart'), {
+            type: 'bar',
+            data: {
+                labels: gradeOrder,
+                datasets: [
+                    { label: 'ผ่าน (ผ)', data: gradeOrder.map(g => gradeCounts[g].pass), backgroundColor: 'rgba(25, 135, 84, 0.7)' },
+                    { label: 'ไม่ผ่าน (มผ)', data: gradeOrder.map(g => gradeCounts[g].fail), backgroundColor: 'rgba(220, 53, 69, 0.7)' }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, title: { display: true, text: 'เปรียบเทียบสรุปผลรายชั้น', font: { size: 16 } } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 5 } } } }
+        });
+    }
+
+    function applyFilters() {
+        const classFilter = $('#filterClass').val();
+        const roomFilter = $('#filterRoom').val();
+        const resultFilter = $('#filterResult').val();
+        const nameFilter = $('#filterName').val().toLowerCase();
+        const filteredData = originalData.filter(row => 
+            (classFilter === "" || row.class === classFilter) &&
+            (roomFilter === "" || row.room === roomFilter) &&
+            (resultFilter === "" || row.result === resultFilter) &&
+            (nameFilter === "" || (row.name && row.name.toLowerCase().includes(nameFilter)))
+        );
+        populateTable(filteredData);
+        updateDashboard(filteredData);
+    }
+
+    const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000, timerProgressBar: true, didOpen: (toast) => { toast.onmouseenter = Swal.stopTimer; toast.onmouseleave = Swal.resumeTimer; } });
+    $('#filterClass, #filterRoom, #filterResult, #filterName').on('change keyup', applyFilters);
+    $('#refreshBtn').on('click', fetchData);
+    fetchData();
+});
+</script>
+
+</body>
+</html>
